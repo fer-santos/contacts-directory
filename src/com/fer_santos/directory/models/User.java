@@ -10,23 +10,32 @@ public class User {
   private String email;
   private String password;
 
-  public User(String password, String email, String lastName, String name) {
-    this.password = password;
-    this.email = email;
-    this.lastName = lastName;
+  public User(String name, String lastName, String email, String password) {
     this.name = name;
+    this.lastName = lastName;
+    this.email = email;
+    this.password = password;
   }
 
-  public void addContact() {
-
+  public void addContact(String name, String lastName, String phoneNumber, String email, String alias) {
+    Contact contact = new Contact(name, lastName, phoneNumber, email, alias);
+    contacts.add(contact);
   }
 
   public void deleteContact() {
-
+    if (!(contacts.isEmpty())) {
+      this.printContacts();
+    } else System.out.println("--- Empty Contact Directory ---");
   }
 
   public void modifyContact() {
 
+  }
+
+  public void printContacts() {
+    for (Contact currenContact : contacts) {
+      System.out.println(currenContact);
+    }
   }
 
   // ### Getters & Setters
