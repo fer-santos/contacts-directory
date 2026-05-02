@@ -22,10 +22,8 @@ public class User {
     contacts.add(contact);
   }
 
-  public void deleteContact() {
-    if (!(contacts.isEmpty())) {
-      this.printContacts();
-    } else System.out.println("--- Empty Contact Directory ---");
+  public boolean deleteContact(String alias) {
+    return contacts.removeIf(contact -> contact.getAlias().equalsIgnoreCase(alias));
   }
 
   public void modifyContact() {
@@ -33,8 +31,12 @@ public class User {
   }
 
   public void printContacts() {
-    for (Contact currenContact : contacts) {
-      System.out.println(currenContact);
+    if (contacts.isEmpty()) {
+      System.out.println("--- Empty Contact Directory ---");
+    } else {
+      for (Contact currenContact : contacts) {
+        System.out.println(currenContact);
+      }
     }
   }
 

@@ -32,9 +32,9 @@ public class Main {
             System.out.print("Enter Your Password: ");
             String password = scanner.nextLine();
             User authenticatedUser = Main.authenticateUser(email, password, usersList);
-            if (!(authenticatedUser == null)) {
-              System.out.println(authenticatedUser.getName());
-              System.out.println(authenticatedUser.getLastName());
+            if (authenticatedUser != null) {
+              System.out.println("\nWelcome " + authenticatedUser.getName() + " " + authenticatedUser.getLastName() + "!");
+              showUserMenu(authenticatedUser, scanner);
               isLogged = true;
             } else System.out.println("\n### INCORRECT EMAIL OR PASSWORD ###\n");
           } while (!isLogged);
@@ -66,5 +66,66 @@ public class Main {
       if (isEmailCorrect && isPasswordCorrect) return currentUser;
     }
     return null;
+  }
+
+  private static void showUserMenu(User user, Scanner scanner) {
+    char option;
+    boolean logout = false;
+
+    do {
+      System.out.println("\n--- User Menu ---");
+      System.out.println("1) View my contacts");
+      System.out.println("2) Add a contact");
+      System.out.println("3) Delete a contact");
+      System.out.println("4) Log out");
+      System.out.print("Option: ");
+      
+      String input = scanner.nextLine();
+      if (input.isEmpty()) continue;
+      option = input.charAt(0);
+
+      switch (option) {
+        case '1' -> {
+          System.out.println("\n--- My Contacts ---");
+          user.printContacts();
+        }
+        case '2' -> {
+          System.out.println("\n--- Add Contact ---");
+          System.out.print("Name: ");
+          String name = scanner.nextLine();
+          System.out.print("Last Name: ");
+          String lastName = scanner.nextLine();
+          
+          String phoneNumber;
+          do {
+            System.out.print("Phone Number: ");
+            phoneNumber = scanner.nextLine();
+            if (phoneNumber.isEmpty()) {
+              System.out.println("### PHONE NUMBER CANNOT BE EMPTY ###");
+            }
+          } while (phoneNumber.isEmpty());
+
+          System.out.print("Email: ");
+          String email = scanner.nextLine();
+          System.out.print("Alias: ");
+          String alias = scanner.nextLine();
+
+          user.addContact(name, lastName, phoneNumber, email, alias);
+          System.out.println("Contact added successfully!");
+        }
+        case '3' -> {
+          System.out.println("\n--- Delete Contact ---");
+          System.out.print("Enter contact alias to delete: ");
+          String alias = scanner.nextLine();
+          if (user.deleteContact(alias)) {
+            System.out.println("Contact deleted successfully!");
+          } else {
+            System.out.println("### CONTACT NOT FOUND ###");
+          }
+        }
+        case '4' -> logout = true;
+        default -> System.out.println("### INVALID OPTION ###");
+      }
+    } while (!logout);
   }
 }
