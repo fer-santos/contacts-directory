@@ -21,24 +21,24 @@ class UserTest {
     }
 
     @Test
-    void deleteContact_ValidAlias_DecrementsSizeAndReturnsTrue() {
+    void deleteContact_ValidIndex_DecrementsSizeAndReturnsTrue() {
         user.addContact("Jane", "Doe", "123456789", "jane@example.com", "Janey");
         int sizeBeforeDelete = user.getContactCount();
         
-        boolean deleted = user.deleteContact("Janey");
+        boolean deleted = user.deleteContact(0);
         
-        assertTrue(deleted, "deleteContact should return true for existing alias");
+        assertTrue(deleted, "deleteContact should return true for existing index");
         assertEquals(sizeBeforeDelete - 1, user.getContactCount(), "Contact list size should decrease by 1");
     }
 
     @Test
-    void deleteContact_InvalidAlias_DoesNotChangeSizeAndReturnsFalse() {
+    void deleteContact_InvalidIndex_DoesNotChangeSizeAndReturnsFalse() {
         user.addContact("Jane", "Doe", "123456789", "jane@example.com", "Janey");
         int sizeBeforeDelete = user.getContactCount();
         
-        boolean deleted = user.deleteContact("NonExistent");
+        boolean deleted = user.deleteContact(5);
         
-        assertFalse(deleted, "deleteContact should return false for non-existent alias");
+        assertFalse(deleted, "deleteContact should return false for out of bounds index");
         assertEquals(sizeBeforeDelete, user.getContactCount(), "Contact list size should remain unchanged");
     }
 }

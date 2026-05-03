@@ -93,17 +93,24 @@ public class Main {
         }
         case '2' -> {
           System.out.println("\n--- Add Contact ---");
-          System.out.print("Name: ");
-          String name = scanner.nextLine();
+          String name;
+          do {
+            System.out.print("Name: ");
+            name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+              System.out.println("### NAME IS MANDATORY ###");
+            }
+          } while (name.isEmpty());
+
           System.out.print("Last Name: ");
           String lastName = scanner.nextLine();
           
           String phoneNumber;
           do {
             System.out.print("Phone Number: ");
-            phoneNumber = scanner.nextLine();
+            phoneNumber = scanner.nextLine().trim();
             if (phoneNumber.isEmpty()) {
-              System.out.println("### PHONE NUMBER CANNOT BE EMPTY ###");
+              System.out.println("### PHONE NUMBER IS MANDATORY ###");
             }
           } while (phoneNumber.isEmpty());
 
@@ -117,12 +124,21 @@ public class Main {
         }
         case '3' -> {
           System.out.println("\n--- Delete Contact ---");
-          System.out.print("Enter contact alias to delete: ");
-          String alias = scanner.nextLine();
-          if (user.deleteContact(alias)) {
-            System.out.println("Contact deleted successfully!");
-          } else {
-            System.out.println("### CONTACT NOT FOUND ###");
+          if (user.getContactCount() == 0) {
+            System.out.println("--- Empty Contact Directory ---");
+            continue;
+          }
+          user.printContacts();
+          System.out.print("Enter index contact number to delete: ");
+          try {
+            int index = Integer.parseInt(scanner.nextLine()) - 1;
+            if (user.deleteContact(index)) {
+              System.out.println("Contact deleted successfully!");
+            } else {
+              System.out.println("### INVALID CONTACT NUMBER ###");
+            }
+          } catch (NumberFormatException e) {
+            System.out.println("### PLEASE ENTER A VALID NUMBER ###");
           }
         }
         case '4' -> logout = true;

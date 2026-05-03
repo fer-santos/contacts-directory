@@ -24,8 +24,12 @@ public class User implements Serializable {
     contacts.add(contact);
   }
 
-  public boolean deleteContact(String alias) {
-    return contacts.removeIf(contact -> contact.getAlias().equalsIgnoreCase(alias));
+  public boolean deleteContact(int index) {
+    if (index >= 0 && index < contacts.size()) {
+      contacts.remove(index);
+      return true;
+    }
+    return false;
   }
 
   public void modifyContact() {
@@ -36,8 +40,8 @@ public class User implements Serializable {
     if (contacts.isEmpty()) {
       System.out.println("--- Empty Contact Directory ---");
     } else {
-      for (Contact currenContact : contacts) {
-        System.out.println(currenContact);
+      for (int i = 0; i < contacts.size(); i++) {
+        System.out.println((i + 1) + ". " + contacts.get(i));
       }
     }
   }
