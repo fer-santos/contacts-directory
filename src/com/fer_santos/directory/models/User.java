@@ -40,6 +40,10 @@ public class User {
     }
   }
 
+  public int getContactCount() {
+    return contacts.size();
+  }
+
   // ### Getters & Setters
   public String getName() {
     return name;
