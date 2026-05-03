@@ -41,14 +41,34 @@ public class Main {
           } while (!isLogged);
         }
         case '2' -> {
-          System.out.print("\nEnter Your Name: ");
-          String name = scanner.nextLine();
-          System.out.print("Enter Your Last Name: ");
+          String name;
+          do {
+            System.out.print("\nEnter Your Name: ");
+            name = scanner.nextLine().trim();
+            if (name.isEmpty()) System.out.println("### ERROR: NAME IS MANDATORY ###");
+          } while (name.isEmpty());
+
+          System.out.print("Enter Your Last Name (Optional): ");
           String lastName = scanner.nextLine();
-          System.out.print("Enter Your E-mail: ");
-          String email = scanner.nextLine();
-          System.out.print("Create a Password: ");
-          String password = scanner.nextLine();
+
+          String email;
+          do {
+            System.out.print("Enter Your E-mail: ");
+            email = scanner.nextLine().trim();
+            if (email.isEmpty()) {
+              System.out.println("### ERROR: EMAIL IS MANDATORY ###");
+            } else if (!email.matches(".*@.*\\..*")) {
+              System.out.println("### ERROR: INVALID EMAIL FORMAT (Must contain '@' and '.') ###");
+            }
+          } while (email.isEmpty() || !email.matches(".*@.*\\..*"));
+
+          String password;
+          do {
+            System.out.print("Create a Password: ");
+            password = scanner.nextLine().trim();
+            if (password.isEmpty()) System.out.println("### ERROR: PASSWORD IS MANDATORY ###");
+          } while (password.isEmpty());
+
           User user = new User(name, lastName, email, password);
           usersList.add(user);
           System.out.println("User Registered");

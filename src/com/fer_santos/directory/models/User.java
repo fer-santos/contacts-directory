@@ -13,6 +13,10 @@ public class User implements Serializable {
   private String password;
 
   public User(String name, String lastName, String email, String password) {
+    if (name == null || name.trim().isEmpty()) throw new IllegalArgumentException("Name is mandatory");
+    if (email == null || !email.matches(".*@.*\\..*")) throw new IllegalArgumentException("Invalid email format");
+    if (password == null || password.trim().isEmpty()) throw new IllegalArgumentException("Password is mandatory");
+    
     this.name = name;
     this.lastName = lastName;
     this.email = email;
