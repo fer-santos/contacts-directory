@@ -106,13 +106,17 @@ public class Main {
           String lastName = scanner.nextLine();
           
           String phoneNumber;
+          boolean isPhoneValid;
           do {
             System.out.print("Phone Number: ");
             phoneNumber = scanner.nextLine().trim();
+            isPhoneValid = phoneNumber.matches("^\\+?\\d+$");
             if (phoneNumber.isEmpty()) {
               System.out.println("### PHONE NUMBER IS MANDATORY ###");
+            } else if (!isPhoneValid) {
+              System.out.println("### ERROR: PHONE NUMBER MUST CONTAIN ONLY DIGITS (optional '+' at start) ###");
             }
-          } while (phoneNumber.isEmpty());
+          } while (phoneNumber.isEmpty() || !isPhoneValid);
 
           System.out.print("Email: ");
           String email = scanner.nextLine();

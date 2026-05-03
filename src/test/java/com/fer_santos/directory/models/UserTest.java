@@ -41,4 +41,11 @@ class UserTest {
         assertFalse(deleted, "deleteContact should return false for out of bounds index");
         assertEquals(sizeBeforeDelete, user.getContactCount(), "Contact list size should remain unchanged");
     }
+
+    @Test
+    void addContact_InvalidPhoneNumber_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            user.addContact("Jane", "Doe", "invalid-phone", "jane@example.com", "Janey");
+        }, "Should throw IllegalArgumentException for non-numeric phone numbers");
+    }
 }

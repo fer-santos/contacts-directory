@@ -20,6 +20,9 @@ public class User implements Serializable {
   }
 
   public void addContact(String name, String lastName, String phoneNumber, String email, String alias) {
+    if (phoneNumber == null || !phoneNumber.matches("^\\+?\\d+$")) {
+      throw new IllegalArgumentException("Invalid phone number format");
+    }
     Contact contact = new Contact(name, lastName, phoneNumber, email, alias);
     contacts.add(contact);
   }
