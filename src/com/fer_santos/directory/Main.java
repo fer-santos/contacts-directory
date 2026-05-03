@@ -1,6 +1,7 @@
 package com.fer_santos.directory;
 
 import com.fer_santos.directory.models.User;
+import com.fer_santos.directory.utils.StorageManager;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -8,7 +9,7 @@ public class Main {
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
 
-    ArrayList<User> usersList = new ArrayList<>();
+    ArrayList<User> usersList = StorageManager.loadUsers();
     char opSelected;
     boolean isValid;
 
@@ -55,6 +56,7 @@ public class Main {
       }
     } while (opSelected != '3');
 
+    StorageManager.saveUsers(usersList);
     System.out.println("End Program :)");
   }
 

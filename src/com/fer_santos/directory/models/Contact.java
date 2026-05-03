@@ -1,6 +1,9 @@
 package com.fer_santos.directory.models;
 
-public class Contact {
+import java.io.Serializable;
+
+public class Contact implements Serializable {
+  private static final long serialVersionUID = 1L;
   private String name;
   private String lastName;
   private String phoneNumber;
