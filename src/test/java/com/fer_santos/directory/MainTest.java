@@ -34,4 +34,19 @@ class MainTest {
         User result = Main.authenticateUser("nonexistent@example.com", "password123", usersList);
         assertNull(result, "Should return null for non-existent email");
     }
+
+    @Test
+    void isEmailRegistered_ExistingEmail_ReturnsTrue() {
+        assertTrue(Main.isEmailRegistered("test@example.com", usersList), "Should return true for existing email");
+    }
+
+    @Test
+    void isEmailRegistered_ExistingEmailDifferentCase_ReturnsTrue() {
+        assertTrue(Main.isEmailRegistered("TEST@example.com", usersList), "Should return true for existing email with different case");
+    }
+
+    @Test
+    void isEmailRegistered_NewEmail_ReturnsFalse() {
+        assertFalse(Main.isEmailRegistered("new@example.com", usersList), "Should return false for a new email");
+    }
 }

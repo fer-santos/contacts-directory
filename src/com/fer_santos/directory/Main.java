@@ -52,15 +52,27 @@ public class Main {
           String lastName = scanner.nextLine();
 
           String email;
+          boolean isDuplicate;
           do {
-            System.out.print("Enter Your E-mail: ");
+            System.out.print("\n(Write \"exit\" to Cancel)\nEnter Your E-mail: ");
             email = scanner.nextLine().trim();
+            if (email.equalsIgnoreCase("exit")) break;
+
             if (email.isEmpty()) {
               System.out.println("### ERROR: EMAIL IS MANDATORY ###");
+              isDuplicate = true;
             } else if (!email.matches(".*@.*\\..*")) {
               System.out.println("### ERROR: INVALID EMAIL FORMAT (Must contain '@' and '.') ###");
+              isDuplicate = true;
+            } else {
+              isDuplicate = isEmailRegistered(email, usersList);
+              if (isDuplicate) {
+                System.out.println("\n### ERROR: EMAIL ALREADY REGISTERED ###");
+              }
             }
-          } while (email.isEmpty() || !email.matches(".*@.*\\..*"));
+          } while (isDuplicate);
+
+          if (email.equalsIgnoreCase("exit")) break;
 
           String password;
           do {
@@ -88,6 +100,15 @@ public class Main {
       if (isEmailCorrect && isPasswordCorrect) return currentUser;
     }
     return null;
+  }
+
+  public static boolean isEmailRegistered(String email, ArrayList<User> usersList) {
+    for (User user : usersList) {
+      if (user.getEmail().equalsIgnoreCase(email)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static void showUserMenu(User user, Scanner scanner) {
