@@ -1,4 +1,4 @@
-name: Java CI with GitHub Actions
+name: Java CI with Maven
 
 on:
   push:
@@ -19,18 +19,7 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
+        cache: 'maven'
 
-    - name: Download JUnit 5 Console Standalone
-      run: |
-        wget https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.2/junit-platform-console-standalone-1.10.2.jar -O junit-platform-console-standalone.jar
-
-    - name: Compile Application and Tests
-      run: |
-        mkdir -p bin
-        # Compilar todas las clases de la aplicación y las pruebas
-        javac -d bin -cp junit-platform-console-standalone.jar $(find src -name "*.java")
-
-    - name: Run Tests
-      run: |
-        # Ejecutar los tests usando el Console Launcher de JUnit 5
-        java -jar junit-platform-console-standalone.jar --class-path bin --scan-class-path --fail-if-no-tests
+    - name: Compile and Test with Maven
+      run: mvn clean test
