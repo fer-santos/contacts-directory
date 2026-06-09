@@ -12,7 +12,15 @@ public class Main {
   public static void main(String[] args) {
     // Scanner scanner = new Scanner(System.in);
 
-    ArrayList<User> usersList = StorageManager.loadUsers();
+    ArrayList<User> loadedUsers = StorageManager.loadUsers();
+    final ArrayList<User> usersList = (loadedUsers != null) ? loadedUsers : new ArrayList<>();
+
+    if (usersList.isEmpty()) {
+      User admin = new User("Admin", "System", "admin@amber.com", "admin123");
+      usersList.add(admin);
+      StorageManager.saveUsers(usersList);
+      System.out.println("Seed user created: admin@amber.com");
+    }
 
     Javalin app = Javalin.create(config -> {
       config.requestLogger.http((ctx, ms) -> {
@@ -31,6 +39,49 @@ public class Main {
         ctx.json(allContacts);
       } catch (Exception e) {
         ctx.status(500).result("Error retrieving contacts: " + e.getMessage());
+      }
+    });
+
+    app.post("/api/contacts", ctx -> {
+      String ownerEmail = ctx.queryParam("ownerEmail");
+      if (ownerEmail == null || ownerEmail.isBlank()) {
+        ctx.status(400).result("Query parameter 'ownerEmail' is mandatory.");
+        return;
+      }
+
+      try {
+        Contact newContact = ctx.bodyAsClass(Contact.class);
+
+        if (newContact.getName() == null || newContact.getName().isBlank() ||
+            newContact.getPhoneNumber() == null || newContact.getPhoneNumber().isBlank()) {
+          ctx.status(400).result("Fields 'name' and 'phoneNumber' cannot be null or empty.");
+          return;
+        }
+
+        User owner = null;
+        for (User user : usersList) {
+          if (user.getEmail().equalsIgnoreCase(ownerEmail)) {
+            owner = user;
+            break;
+          }
+        }
+
+        if (owner == null) {
+          ctx.status(404).result("User with email " + ownerEmail + " not found.");
+          return;
+        }
+
+        owner.getContacts().add(newContact);
+        
+        try {
+          StorageManager.saveUsers(usersList);
+          ctx.status(201).json(newContact);
+        } catch (Exception e) {
+          ctx.status(500).result("Error during data persistence.");
+        }
+
+      } catch (Exception e) {
+        ctx.status(400).result("Invalid JSON body or format.");
       }
     });
 

@@ -10,6 +10,9 @@ public class Contact implements Serializable {
   private String email;
   private String alias;
 
+  public Contact() {
+  }
+
   public Contact(String name, String lastName, String phoneNumber, String email, String alias) {
     this.name = name;
     this.lastName = lastName;

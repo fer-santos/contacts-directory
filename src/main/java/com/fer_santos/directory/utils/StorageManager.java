@@ -11,7 +11,7 @@ public class StorageManager {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(users);
         } catch (IOException e) {
-            System.err.println("Error saving users: " + e.getMessage());
+            throw new RuntimeException("Failed to save users to storage", e);
         }
     }
 
