@@ -57,6 +57,10 @@ public class User implements Serializable {
     return contacts.size();
   }
 
+  public ArrayList<Contact> getContacts() {
+    return contacts;
+  }
+
   // ### Getters & Setters
   public String getName() {
     return name;

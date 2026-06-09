@@ -1,15 +1,40 @@
 package com.fer_santos.directory;
 
+import com.fer_santos.directory.models.Contact;
 import com.fer_santos.directory.models.User;
 import com.fer_santos.directory.utils.StorageManager;
+import io.javalin.Javalin;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
   public static void main(String[] args) {
-    Scanner scanner = new Scanner(System.in);
+    // Scanner scanner = new Scanner(System.in);
 
     ArrayList<User> usersList = StorageManager.loadUsers();
+
+    Javalin app = Javalin.create(config -> {
+      config.requestLogger.http((ctx, ms) -> {
+        System.out.println("Request: " + ctx.method() + " " + ctx.path() + " - " + ms + "ms");
+      });
+    }).start(7070);
+
+    app.get("/", ctx -> ctx.result("Amber Minimal API is running!"));
+
+    app.get("/api/contacts", ctx -> {
+      try {
+        List<Contact> allContacts = new ArrayList<>();
+        for (User user : usersList) {
+          allContacts.addAll(user.getContacts());
+        }
+        ctx.json(allContacts);
+      } catch (Exception e) {
+        ctx.status(500).result("Error retrieving contacts: " + e.getMessage());
+      }
+    });
+
+    /*
     char opSelected;
     boolean isValid;
 
@@ -90,6 +115,7 @@ public class Main {
 
     StorageManager.saveUsers(usersList);
     System.out.println("End Program :)");
+    */
   }
 
   public static User authenticateUser (String email, String password, ArrayList<User> userList) {

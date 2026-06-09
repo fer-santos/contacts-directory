@@ -1,4 +1,4 @@
-package test.java.com.fer_santos.directory.models;
+package com.fer_santos.directory.models;
 
 import com.fer_santos.directory.models.User;
 import org.junit.jupiter.api.BeforeEach;

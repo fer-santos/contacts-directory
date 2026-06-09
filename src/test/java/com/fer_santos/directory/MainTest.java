@@ -1,4 +1,4 @@
-package test.java.com.fer_santos.directory;
+package com.fer_santos.directory;
 
 import com.fer_santos.directory.Main;
 import com.fer_santos.directory.models.User;

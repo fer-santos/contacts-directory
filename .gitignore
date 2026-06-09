@@ -8,5 +8,18 @@ out/
 *.iml
 *.class
 
+# Contexto de IA y Diseño
+AGENT.md
+BRAND_GUIDELINES.md
+GEMINI.md
+PROJECT_CONTEXT.md
+spec.md
+
+# Base de datos local
+users.dat
+
+# Archivos de compilación de Maven
+target/
+
 ### Mac OS ###
 .DS_Store
