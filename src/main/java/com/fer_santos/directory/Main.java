@@ -23,12 +23,11 @@ public class Main {
     }
 
     Javalin app = Javalin.create(config -> {
+      config.staticFiles.add("/public");
       config.requestLogger.http((ctx, ms) -> {
         System.out.println("Request: " + ctx.method() + " " + ctx.path() + " - " + ms + "ms");
       });
     }).start(7070);
-
-    app.get("/", ctx -> ctx.result("Amber Minimal API is running!"));
 
     app.get("/api/contacts", ctx -> {
       ArrayList<User> currentUsers = StorageManager.loadUsers();
