@@ -31,9 +31,14 @@ public class Main {
     app.get("/", ctx -> ctx.result("Amber Minimal API is running!"));
 
     app.get("/api/contacts", ctx -> {
+      ArrayList<User> currentUsers = StorageManager.loadUsers();
+      if (currentUsers == null) {
+        ctx.status(500).result("Error loading database.");
+        return;
+      }
       try {
         List<Contact> allContacts = new ArrayList<>();
-        for (User user : usersList) {
+        for (User user : currentUsers) {
           allContacts.addAll(user.getContacts());
         }
         ctx.json(allContacts);
@@ -43,6 +48,12 @@ public class Main {
     });
 
     app.post("/api/contacts", ctx -> {
+      ArrayList<User> currentUsers = StorageManager.loadUsers();
+      if (currentUsers == null) {
+        ctx.status(500).result("Error loading database.");
+        return;
+      }
+
       String ownerEmail = ctx.queryParam("ownerEmail");
       if (ownerEmail == null || ownerEmail.isBlank()) {
         ctx.status(400).result("Query parameter 'ownerEmail' is mandatory.");
@@ -59,7 +70,7 @@ public class Main {
         }
 
         User owner = null;
-        for (User user : usersList) {
+        for (User user : currentUsers) {
           if (user.getEmail().equalsIgnoreCase(ownerEmail)) {
             owner = user;
             break;
@@ -74,7 +85,7 @@ public class Main {
         owner.getContacts().add(newContact);
         
         try {
-          StorageManager.saveUsers(usersList);
+          StorageManager.saveUsers(currentUsers);
           ctx.status(201).json(newContact);
         } catch (Exception e) {
           ctx.status(500).result("Error during data persistence.");

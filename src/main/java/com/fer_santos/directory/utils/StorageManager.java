@@ -26,7 +26,7 @@ public class StorageManager {
             return (ArrayList<User>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error loading users: " + e.getMessage());
-            return new ArrayList<>();
+            return null;
         }
     }
 }
