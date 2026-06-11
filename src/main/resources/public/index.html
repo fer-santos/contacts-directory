@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amber Contacts</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-background text-foreground">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h2 class="brand">Contacts</h2>
+            <div class="search-container">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search contacts..." class="search-input">
+            </div>
+            <div class="user-profile" id="userProfileBtn">
+                <div class="avatar-small" id="userAvatar">FG</div>
+                <span class="user-name">Fernando Gordillo</span>
+                <i data-lucide="chevron-down" class="chevron-icon" id="userProfileChevron"></i>
+                
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu" id="userDropdown">
+                    <div class="dropdown-group">
+                        <button class="dropdown-item">
+                            <i data-lucide="user"></i>
+                            <span>Profile Settings</span>
+                        </button>
+                        <button class="dropdown-item" id="themeToggleBtn">
+                            <i data-lucide="moon" id="themeIcon"></i>
+                            <span>Theme</span>
+                            <span class="theme-label" id="themeLabel">Dark</span>
+                        </button>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-group">
+                        <button class="dropdown-item text-danger">
+                            <i data-lucide="log-out"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-content">
+            <button class="btn-primary btn-add" id="addContactBtn">
+                <i data-lucide="plus"></i>
+                <span>Add Contact</span>
+            </button>
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="all">
+                    <i data-lucide="users"></i>
+                    <span>All Contacts</span>
+                </button>
+                <button class="nav-item" data-view="favorites">
+                    <i data-lucide="star"></i>
+                    <span>Favorites</span>
+                </button>
+                <button class="nav-item" data-view="trash">
+                    <i data-lucide="trash-2"></i>
+                    <span>Trash</span>
+                </button>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- Master Panel: Contact List -->
+        <section class="master-panel">
+            <div class="panel-header">
+                <h2 id="viewTitle">All Contacts</h2>
+                <p id="contactCount" class="text-secondary">0 contacts</p>
+            </div>
+            <div class="contact-list" id="contactList">
+                <div class="loading">Loading contacts...</div>
+            </div>
+        </section>
+
+        <!-- Detail Panel -->
+        <section class="detail-panel" id="detailPanel">
+            <!-- Dynamic Content goes here -->
+        </section>
+    </main>
+
+    <!-- Modal for Add/Edit -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Contact</h2>
+                <button class="btn-close" id="closeModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="contactForm" class="modal-form">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="firstName" required placeholder="e.g. Jane">
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="optional">(Optional)</span></label>
+                    <input type="text" name="lastName" placeholder="e.g. Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required placeholder="jane.doe@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" required placeholder="+1 (555) 000-0000">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary btn-save">Save Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
