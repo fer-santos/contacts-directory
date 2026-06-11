@@ -325,11 +325,11 @@ public class Main {
           do {
             System.out.print("Phone Number: ");
             phoneNumber = scanner.nextLine().trim();
-            isPhoneValid = phoneNumber.matches("^\\+?\\d+$");
+            isPhoneValid = phoneNumber.matches("^[0-9\\+\\-\\s\\(\\)]+$");
             if (phoneNumber.isEmpty()) {
               System.out.println("### PHONE NUMBER IS MANDATORY ###");
             } else if (!isPhoneValid) {
-              System.out.println("### ERROR: PHONE NUMBER MUST CONTAIN ONLY DIGITS (optional '+' at start) ###");
+              System.out.println("### ERROR: PHONE NUMBER MUST CONTAIN ONLY DIGITS AND + - ( ) ###");
             }
           } while (phoneNumber.isEmpty() || !isPhoneValid);
 

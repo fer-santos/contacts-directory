@@ -112,12 +112,12 @@
                     <input type="text" name="lastName" placeholder="e.g. Doe">
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required placeholder="jane.doe@example.com">
+                    <label>Email <span class="optional">(Optional)</span></label>
+                    <input type="email" name="email" placeholder="jane.doe@example.com">
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel" name="phone" required placeholder="+1 (555) 000-0000">
+                    <input type="tel" name="phone" required pattern="[0-9\+\-\s\(\)]+" title="Only numbers, spaces, and + - ( ) are allowed" placeholder="+1 (555) 000-0000">
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary btn-save">Save Contact</button>

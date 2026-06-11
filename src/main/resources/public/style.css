@@ -549,6 +549,10 @@ body {
     gap: 12px;
 }
 
+.detail-actions.two-cols {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .btn-secondary {
     padding: 12px 16px;
     background: var(--surface);

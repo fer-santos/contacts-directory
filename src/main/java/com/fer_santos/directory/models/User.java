@@ -24,7 +24,7 @@ public class User implements Serializable {
   }
 
   public void addContact(String name, String lastName, String phoneNumber, String email, String alias) {
-    if (phoneNumber == null || !phoneNumber.matches("^\\+?\\d+$")) {
+    if (phoneNumber == null || !phoneNumber.matches("^[0-9\\+\\-\\s\\(\\)]+$")) {
       throw new IllegalArgumentException("Invalid phone number format");
     }
     Contact contact = new Contact(name, lastName, phoneNumber, email, alias);

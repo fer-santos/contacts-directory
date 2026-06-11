@@ -9,6 +9,8 @@ public class Contact implements Serializable {
   private String phoneNumber;
   private String email;
   private String alias;
+  private boolean favorite;
+  private boolean trashed;
 
   public Contact() {
   }
@@ -19,13 +21,30 @@ public class Contact implements Serializable {
     this.phoneNumber = phoneNumber;
     this.email = email;
     this.alias = alias;
+    this.favorite = false;
+    this.trashed = false;
+  }
+
+  public boolean isFavorite() {
+    return favorite;
+  }
+
+  public void setFavorite(boolean favorite) {
+    this.favorite = favorite;
+  }
+
+  public boolean isTrashed() {
+    return trashed;
+  }
+
+  public void setTrashed(boolean trashed) {
+    this.trashed = trashed;
   }
 
   public String getAlias() {
     return alias;
   }
 
-  // ### Getters & Setters
   public void setAlias(String alias) {
     this.alias = alias;
   }
@@ -70,6 +89,8 @@ public class Contact implements Serializable {
     sb.append(", phoneNumber='").append(phoneNumber).append('\'');
     sb.append(", email='").append(email).append('\'');
     sb.append(", alias='").append(alias).append('\'');
+    sb.append(", favorite=").append(favorite);
+    sb.append(", trashed=").append(trashed);
     sb.append('}');
     return sb.toString();
   }

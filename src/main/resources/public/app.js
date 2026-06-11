@@ -89,9 +89,19 @@ async function fetchContacts() {
 function renderFilteredContacts() {
     const query = searchInput.value.toLowerCase();
     
-    // In a real app we might filter by favorites/trash here based on currentView
-    let filtered = contacts;
+    // Map with original indices
+    let filtered = contacts.map((c, i) => ({...c, originalIndex: i}));
     
+    // Filter by view
+    if (currentView === 'all') {
+        filtered = filtered.filter(c => !c.trashed);
+    } else if (currentView === 'favorites') {
+        filtered = filtered.filter(c => c.favorite && !c.trashed);
+    } else if (currentView === 'trash') {
+        filtered = filtered.filter(c => c.trashed);
+    }
+    
+    // Filter by query
     if (query) {
         filtered = filtered.filter(c => 
             (c.name && c.name.toLowerCase().includes(query)) || 
@@ -104,13 +114,11 @@ function renderFilteredContacts() {
     
     if (filtered.length > 0) {
         // Find if currently selected contact is in the filtered list
-        const currentSelectedContact = contacts[selectedContactIndex];
-        const isCurrentlySelectedInFiltered = currentSelectedContact && filtered.some(c => c === currentSelectedContact);
+        const isCurrentlySelectedInFiltered = selectedContactIndex !== -1 && filtered.some(c => c.originalIndex === selectedContactIndex);
         
         if (!isCurrentlySelectedInFiltered) {
              // Select the first one in the filtered list
-             const originalIndex = contacts.indexOf(filtered[0]);
-             selectContact(originalIndex);
+             selectContact(filtered[0].originalIndex);
         } else {
              // Just re-render detail for selected
              renderContactDetail(contacts[selectedContactIndex]);
@@ -120,7 +128,6 @@ function renderFilteredContacts() {
         renderEmptyDetail();
     }
 }
-
 
 /**
  * Render the sidebar contact list
@@ -135,7 +142,7 @@ function renderContactList(list) {
     }
 
     list.forEach((contact) => {
-        const index = contacts.indexOf(contact); // original index
+        const index = contact.originalIndex;
         const card = document.createElement('button');
         card.className = `contact-card ${index === selectedContactIndex ? 'selected' : ''}`;
         card.onclick = () => selectContact(index);
@@ -170,6 +177,40 @@ function renderContactDetail(contact) {
     if(!contact) return;
     const initial = contact.name ? contact.name.trim().charAt(0).toUpperCase() : '?';
 
+    let actionButtons = '';
+    let actionsClass = 'detail-actions';
+    
+    if (contact.trashed) {
+        actionsClass = 'detail-actions two-cols';
+        actionButtons = `
+            <button class="btn-secondary" onclick="handleRestore()">
+                <i data-lucide="rotate-ccw"></i>
+                <span>Restore</span>
+            </button>
+            <button class="btn-secondary btn-danger" onclick="handlePermanentDelete()">
+                <i data-lucide="trash-2"></i>
+                <span>Delete</span>
+            </button>
+        `;
+    } else {
+        const favIcon = contact.favorite ? 'star-off' : 'star';
+        const favText = contact.favorite ? 'Unfavorite' : 'Favorite';
+        actionButtons = `
+            <button class="btn-secondary btn-edit" onclick="handleEdit()">
+                <i data-lucide="edit-2"></i>
+                <span>Edit</span>
+            </button>
+            <button class="btn-secondary" onclick="handleToggleFavorite()">
+                <i data-lucide="${favIcon}"></i>
+                <span>${favText}</span>
+            </button>
+            <button class="btn-secondary btn-danger" onclick="handleTrash()">
+                <i data-lucide="trash-2"></i>
+                <span>Delete</span>
+            </button>
+        `;
+    }
+
     detailPanel.innerHTML = `
         <div class="detail-card">
             <div class="detail-content">
@@ -196,19 +237,8 @@ function renderContactDetail(contact) {
                     </div>
                 </div>
 
-                <div class="detail-actions">
-                    <button class="btn-secondary btn-edit" onclick="handleEdit()">
-                        <i data-lucide="edit-2"></i>
-                        <span>Edit</span>
-                    </button>
-                    <button class="btn-secondary" onclick="handleFavorite()">
-                        <i data-lucide="star"></i>
-                        <span>Favorite</span>
-                    </button>
-                    <button class="btn-secondary btn-danger" onclick="handleDelete()">
-                        <i data-lucide="trash-2"></i>
-                        <span>Delete</span>
-                    </button>
+                <div class="${actionsClass}">
+                    ${actionButtons}
                 </div>
             </div>
         </div>
@@ -274,7 +304,7 @@ function setupEventListeners() {
             if(currentView === 'favorites') viewTitle.textContent = 'Favorites';
             if(currentView === 'trash') viewTitle.textContent = 'Trash';
             
-            // For now, just re-render list
+            // Re-render list
             renderFilteredContacts();
         });
     });
@@ -323,7 +353,9 @@ async function handleAdd(data) {
             body: JSON.stringify({
                 name: fullName,
                 email: data.email,
-                phoneNumber: data.phone
+                phoneNumber: data.phone,
+                favorite: false,
+                trashed: false
             })
         });
 
@@ -363,12 +395,14 @@ window.handleEdit = function() {
 async function handleSaveEdit(data) {
     try {
         const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+        const existingContact = contacts[selectedContactIndex];
         const response = await fetch(`${API_URL}&contactIndex=${selectedContactIndex}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                ...existingContact,
                 name: fullName,
                 email: data.email,
                 phoneNumber: data.phone
@@ -390,19 +424,26 @@ async function handleSaveEdit(data) {
     }
 }
 
-window.handleDelete = async function() {
+window.handleTrash = async function() {
     if (selectedContactIndex < 0 || selectedContactIndex >= contacts.length) return;
     
     const contact = contacts[selectedContactIndex];
     if (confirm(`Are you sure you want to delete ${contact.name}?`)) {
+        contact.trashed = true;
+        await updateContact(selectedContactIndex, contact);
+    }
+};
+
+window.handlePermanentDelete = async function() {
+    if (selectedContactIndex < 0 || selectedContactIndex >= contacts.length) return;
+    
+    if (confirm(`Permanently delete this contact?`)) {
         try {
             const response = await fetch(`${API_URL}&contactIndex=${selectedContactIndex}`, {
                 method: 'DELETE'
             });
             if (response.ok) {
-                if (selectedContactIndex >= contacts.length - 1) {
-                    selectedContactIndex = contacts.length - 2;
-                }
+                selectedContactIndex = -1;
                 fetchContacts();
             } else {
                 const errorMsg = await response.text();
@@ -415,6 +456,41 @@ window.handleDelete = async function() {
     }
 };
 
-window.handleFavorite = function() {
-    alert('Favorite functionality coming soon!');
+window.handleRestore = async function() {
+    if (selectedContactIndex < 0 || selectedContactIndex >= contacts.length) return;
+    
+    const contact = contacts[selectedContactIndex];
+    contact.trashed = false;
+    await updateContact(selectedContactIndex, contact);
 };
+
+window.handleToggleFavorite = async function() {
+    if (selectedContactIndex < 0 || selectedContactIndex >= contacts.length) return;
+    
+    const contact = contacts[selectedContactIndex];
+    contact.favorite = !contact.favorite;
+    await updateContact(selectedContactIndex, contact);
+};
+
+async function updateContact(index, contactData) {
+    try {
+        const response = await fetch(`${API_URL}&contactIndex=${index}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(contactData)
+        });
+
+        if (response.ok) {
+            fetchContacts();
+        } else {
+            const errorMsg = await response.text();
+            console.error('Failed to update contact:', response.status, errorMsg);
+            alert(`Error updating contact: ${errorMsg}`);
+        }
+    } catch (error) {
+        console.error('Error during updateContact:', error);
+        alert('Network error. Could not reach the server.');
+    }
+}
