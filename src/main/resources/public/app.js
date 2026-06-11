@@ -309,6 +309,15 @@ function setupEventListeners() {
         });
     });
 
+    // Sign Out logic
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+        signOutBtn.addEventListener('click', () => {
+            localStorage.removeItem('ownerEmail');
+            window.location.href = 'login.html';
+        });
+    }
+
     // Modal logic
     addContactBtn.onclick = () => {
         isEditing = false;

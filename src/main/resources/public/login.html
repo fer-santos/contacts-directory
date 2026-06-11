@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Amber Contacts</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        const theme = localStorage.getItem('theme') || 'dark';
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        else document.documentElement.classList.add('light');
+    </script>
+</head>
+<body class="bg-background text-foreground">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Welcome Back</h1>
+                <p>Enter your credentials to access your directory.</p>
+            </div>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" class="form-input" required placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-input" required placeholder="••••••••">
+                </div>
+                <div class="auth-submit-wrapper">
+                    <button type="submit" class="btn-primary auth-submit">Log In</button>
+                </div>
+            </form>
+            <div class="auth-footer">
+                Don't have an account? <a href="register.html" class="auth-link">Create an Account</a>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+</body>
+</html>
