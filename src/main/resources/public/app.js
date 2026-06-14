@@ -2,8 +2,12 @@
  * Amber Minimal Dashboard Logic
  */
 
-const OWNER_EMAIL = 'admin@amber.com';
-const API_URL = `/api/contacts?ownerEmail=${encodeURIComponent(OWNER_EMAIL)}`;
+// Authentication check before anything else
+if (!localStorage.getItem('token')) {
+    window.location.href = 'login.html';
+}
+
+const API_URL = `/api/contacts`;
 
 let contacts = [];
 let selectedContactIndex = -1;
@@ -34,12 +38,56 @@ const modalTitle = document.getElementById('modalTitle');
 // Nav items
 const navItems = document.querySelectorAll('.nav-item');
 
+function getAuthHeaders() {
+    return {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+    };
+}
+
+function checkAuthResponse(response) {
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+        throw new Error('Unauthorized');
+    }
+    return response;
+}
+
 /**
  * Initialization
  */
 document.addEventListener('DOMContentLoaded', () => {
     applyTheme(theme);
     lucide.createIcons();
+    
+    // Set user profile info
+    const userName = localStorage.getItem('userName') || 'User';
+    const userLastName = localStorage.getItem('userLastName') || '';
+    const userAvatarEl = document.getElementById('userAvatar');
+    const userNameEl = document.querySelector('.user-name');
+    
+    // Extract first word of name and first word of last name
+    const firstWordName = userName.trim().split(/\s+/)[0] || '';
+    const firstWordLastName = userLastName.trim().split(/\s+/)[0] || '';
+    
+    let displayName = firstWordName;
+    let avatarText = firstWordName ? firstWordName.charAt(0).toUpperCase() : '?';
+    
+    if (firstWordLastName) {
+        displayName += ' ' + firstWordLastName;
+        avatarText += firstWordLastName.charAt(0).toUpperCase();
+    }
+    
+    if (userNameEl) {
+        userNameEl.textContent = displayName || 'User';
+    }
+    if (userAvatarEl) {
+        userAvatarEl.textContent = avatarText;
+    }
+    
     fetchContacts();
     setupEventListeners();
 });
@@ -74,7 +122,9 @@ function applyTheme(newTheme) {
  */
 async function fetchContacts() {
     try {
-        const response = await fetch(API_URL);
+        let response = await fetch(API_URL, { headers: getAuthHeaders() });
+        response = checkAuthResponse(response);
+        
         if (!response.ok) throw new Error('Failed to fetch contacts');
         
         contacts = await response.json();
@@ -313,7 +363,9 @@ function setupEventListeners() {
     const signOutBtn = document.getElementById('signOutBtn');
     if (signOutBtn) {
         signOutBtn.addEventListener('click', () => {
-            localStorage.removeItem('ownerEmail');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userEmail');
             window.location.href = 'login.html';
         });
     }
@@ -354,11 +406,9 @@ function setupEventListeners() {
 async function handleAdd(data) {
     try {
         const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
-        const response = await fetch(API_URL, {
+        let response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 name: fullName,
                 email: data.email,
@@ -367,6 +417,8 @@ async function handleAdd(data) {
                 trashed: false
             })
         });
+        
+        response = checkAuthResponse(response);
 
         if (response.status === 201) {
             contactModal.classList.remove('show');
@@ -384,7 +436,6 @@ async function handleAdd(data) {
     }
 }
 
-// Attach functions to global scope if they are called from inline HTML handlers
 window.handleEdit = function() {
     if (selectedContactIndex < 0 || selectedContactIndex >= contacts.length) return;
     
@@ -405,11 +456,9 @@ async function handleSaveEdit(data) {
     try {
         const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
         const existingContact = contacts[selectedContactIndex];
-        const response = await fetch(`${API_URL}&contactIndex=${selectedContactIndex}`, {
+        let response = await fetch(`${API_URL}?contactIndex=${selectedContactIndex}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 ...existingContact,
                 name: fullName,
@@ -417,6 +466,8 @@ async function handleSaveEdit(data) {
                 phoneNumber: data.phone
             })
         });
+        
+        response = checkAuthResponse(response);
 
         if (response.ok) {
             contactModal.classList.remove('show');
@@ -448,9 +499,12 @@ window.handlePermanentDelete = async function() {
     
     if (confirm(`Permanently delete this contact?`)) {
         try {
-            const response = await fetch(`${API_URL}&contactIndex=${selectedContactIndex}`, {
-                method: 'DELETE'
+            let response = await fetch(`${API_URL}?contactIndex=${selectedContactIndex}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
+            response = checkAuthResponse(response);
+            
             if (response.ok) {
                 selectedContactIndex = -1;
                 fetchContacts();
@@ -483,13 +537,13 @@ window.handleToggleFavorite = async function() {
 
 async function updateContact(index, contactData) {
     try {
-        const response = await fetch(`${API_URL}&contactIndex=${index}`, {
+        let response = await fetch(`${API_URL}?contactIndex=${index}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(contactData)
         });
+        
+        response = checkAuthResponse(response);
 
         if (response.ok) {
             fetchContacts();
