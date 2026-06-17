@@ -456,7 +456,7 @@ async function handleSaveEdit(data) {
     try {
         const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
         const existingContact = contacts[selectedContactIndex];
-        let response = await fetch(`${API_URL}?contactIndex=${selectedContactIndex}`, {
+        let response = await fetch(`${API_URL}?id=${existingContact.id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify({
@@ -499,7 +499,8 @@ window.handlePermanentDelete = async function() {
     
     if (confirm(`Permanently delete this contact?`)) {
         try {
-            let response = await fetch(`${API_URL}?contactIndex=${selectedContactIndex}`, {
+            const existingContact = contacts[selectedContactIndex];
+            let response = await fetch(`${API_URL}?id=${existingContact.id}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
@@ -537,7 +538,7 @@ window.handleToggleFavorite = async function() {
 
 async function updateContact(index, contactData) {
     try {
-        let response = await fetch(`${API_URL}?contactIndex=${index}`, {
+        let response = await fetch(`${API_URL}?id=${contactData.id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(contactData)

@@ -1,9 +1,11 @@
 package com.fer_santos.directory.models;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Contact implements Serializable {
   private static final long serialVersionUID = 1L;
+  private String id;
   private String name;
   private String lastName;
   private String phoneNumber;
@@ -13,9 +15,11 @@ public class Contact implements Serializable {
   private boolean trashed;
 
   public Contact() {
+    this.id = UUID.randomUUID().toString();
   }
 
   public Contact(String name, String lastName, String phoneNumber, String email, String alias) {
+    this.id = UUID.randomUUID().toString();
     this.name = name;
     this.lastName = lastName;
     this.phoneNumber = phoneNumber;
@@ -23,6 +27,14 @@ public class Contact implements Serializable {
     this.alias = alias;
     this.favorite = false;
     this.trashed = false;
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public boolean isFavorite() {

@@ -155,10 +155,10 @@ public class Main {
 
     app.put("/api/contacts", ctx -> {
       String email = ctx.attribute("email");
-      String indexStr = ctx.queryParam("contactIndex");
+      String id = ctx.queryParam("id");
 
-      if (indexStr == null || indexStr.isBlank()) {
-        ctx.status(400).result("Parameter 'contactIndex' is mandatory.");
+      if (id == null || id.isBlank()) {
+        ctx.status(400).result("Parameter 'id' is mandatory.");
         return;
       }
 
@@ -169,7 +169,6 @@ public class Main {
       }
 
       try {
-        int index = Integer.parseInt(indexStr);
         User user = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
 
         if (user == null) {
@@ -177,8 +176,17 @@ public class Main {
           return;
         }
 
-        if (index < 0 || index >= user.getContacts().size()) {
-          ctx.status(400).result("Invalid contact index.");
+        int targetIndex = -1;
+        for (int i = 0; i < user.getContacts().size(); i++) {
+          Contact c = user.getContacts().get(i);
+          if (c.getId() != null && c.getId().equals(id)) {
+            targetIndex = i;
+            break;
+          }
+        }
+
+        if (targetIndex == -1) {
+          ctx.status(404).result("Contact not found.");
           return;
         }
 
@@ -189,12 +197,13 @@ public class Main {
           return;
         }
 
-        user.getContacts().set(index, updatedContact);
+        // Ensure ID is maintained
+        updatedContact.setId(id);
+
+        user.getContacts().set(targetIndex, updatedContact);
         StorageManager.saveUsers(currentUsers);
         ctx.status(200).json(updatedContact);
 
-      } catch (NumberFormatException e) {
-        ctx.status(400).result("Parameter 'contactIndex' must be a number.");
       } catch (Exception e) {
         ctx.status(500).result("Persistence error.");
       }
@@ -202,10 +211,10 @@ public class Main {
 
     app.delete("/api/contacts", ctx -> {
       String email = ctx.attribute("email");
-      String indexStr = ctx.queryParam("contactIndex");
+      String id = ctx.queryParam("id");
 
-      if (indexStr == null || indexStr.isBlank()) {
-        ctx.status(400).result("Parameter 'contactIndex' is mandatory.");
+      if (id == null || id.isBlank()) {
+        ctx.status(400).result("Parameter 'id' is mandatory.");
         return;
       }
 
@@ -216,7 +225,6 @@ public class Main {
       }
 
       try {
-        int index = Integer.parseInt(indexStr);
         User user = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
 
         if (user == null) {
@@ -224,17 +232,16 @@ public class Main {
           return;
         }
 
-        if (index < 0 || index >= user.getContacts().size()) {
-          ctx.status(400).result("Invalid contact index.");
+        boolean removed = user.getContacts().removeIf(c -> c.getId() != null && c.getId().equals(id));
+
+        if (!removed) {
+          ctx.status(404).result("Contact not found.");
           return;
         }
 
-        user.getContacts().remove(index);
         StorageManager.saveUsers(currentUsers);
         ctx.status(200).result("Contact deleted successfully.");
 
-      } catch (NumberFormatException e) {
-        ctx.status(400).result("Parameter 'contactIndex' must be a number.");
       } catch (Exception e) {
         ctx.status(500).result("Persistence error.");
       }
