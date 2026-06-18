@@ -15,8 +15,12 @@ GEMINI.md
 PROJECT_CONTEXT.md
 spec.md
 
-# Base de datos local
-users.dat
+# Bases de datos de desarrollo y testing
+*.db
+*.sqlite
+
+# Archivos de persistencia antiguos
+*.dat
 
 # Archivos de compilación de Maven
 target/

@@ -1,96 +1,38 @@
 package com.fer_santos.directory.models;
 
-import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.UUID;
 
-public class User implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private ArrayList<Contact> contacts = new ArrayList<>();
-
+public class User {
+  private String id;
   private String name;
   private String lastName;
   private String email;
   private String password;
+
+  public User() {
+    this.id = UUID.randomUUID().toString();
+  }
 
   public User(String name, String lastName, String email, String password) {
     if (name == null || name.trim().isEmpty()) throw new IllegalArgumentException("Name is mandatory");
     if (email == null || !email.matches(".*@.*\\..*")) throw new IllegalArgumentException("Invalid email format");
     if (password == null || password.trim().isEmpty()) throw new IllegalArgumentException("Password is mandatory");
     
+    this.id = UUID.randomUUID().toString();
     this.name = name;
     this.lastName = lastName;
     this.email = email;
     this.password = password;
   }
 
-  public void addContact(String name, String lastName, String phoneNumber, String email, String alias) {
-    if (phoneNumber == null || !phoneNumber.matches("^[0-9\\+\\-\\s\\(\\)]+$")) {
-      throw new IllegalArgumentException("Invalid phone number format");
-    }
-    Contact contact = new Contact(name, lastName, phoneNumber, email, alias);
-    contacts.add(contact);
-  }
-
-  public boolean deleteContact(int index) {
-    if (index >= 0 && index < contacts.size()) {
-      contacts.remove(index);
-      return true;
-    }
-    return false;
-  }
-
-  public void modifyContact() {
-
-  }
-
-  public void printContacts() {
-    if (contacts.isEmpty()) {
-      System.out.println("--- Empty Contact Directory ---");
-    } else {
-      for (int i = 0; i < contacts.size(); i++) {
-        System.out.println((i + 1) + ". " + contacts.get(i));
-      }
-    }
-  }
-
-  public int getContactCount() {
-    return contacts.size();
-  }
-
-  public ArrayList<Contact> getContacts() {
-    return contacts;
-  }
-
-  // ### Getters & Setters
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
+  public String getId() { return id; }
+  public void setId(String id) { this.id = id; }
+  public String getName() { return name; }
+  public void setName(String name) { this.name = name; }
+  public String getLastName() { return lastName; }
+  public void setLastName(String lastName) { this.lastName = lastName; }
+  public String getEmail() { return email; }
+  public void setEmail(String email) { this.email = email; }
+  public String getPassword() { return password; }
+  public void setPassword(String password) { this.password = password; }
 }

@@ -1,10 +1,13 @@
 package com.fer_santos.directory.controllers;
 
 import com.fer_santos.directory.models.User;
-import com.fer_santos.directory.utils.StorageManager;
+import com.fer_santos.directory.utils.DatabaseManager;
 import io.javalin.http.Context;
 
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,10 +29,8 @@ public class AuthController {
 
     public static void login(Context ctx) {
         LoginDto dto = ctx.bodyAsClass(LoginDto.class);
-        ArrayList<User> currentUsers = StorageManager.loadUsers();
-        if (currentUsers == null) currentUsers = new ArrayList<>();
 
-        User user = authenticateUser(dto.email, dto.password, currentUsers);
+        User user = authenticateUser(dto.email, dto.password);
         if (user != null) {
             String token = UUID.randomUUID().toString();
             activeSessions.put(token, user.getEmail());
@@ -46,39 +47,62 @@ public class AuthController {
 
     public static void register(Context ctx) {
         RegisterDto dto = ctx.bodyAsClass(RegisterDto.class);
-        ArrayList<User> currentUsers = StorageManager.loadUsers();
-        if (currentUsers == null) currentUsers = new ArrayList<>();
 
-        if (isEmailRegistered(dto.email, currentUsers)) {
+        if (isEmailRegistered(dto.email)) {
             ctx.status(400).result("Email already registered");
             return;
         }
 
         try {
             User newUser = new User(dto.firstName, dto.lastName, dto.email, dto.password);
-            currentUsers.add(newUser);
-            StorageManager.saveUsers(currentUsers);
-            ctx.status(201).result("Registered successfully");
+            
+            String sql = "INSERT INTO users (id, firstName, lastName, email, password) VALUES (?, ?, ?, ?, ?)";
+            try (Connection conn = DatabaseManager.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, newUser.getId());
+                pstmt.setString(2, newUser.getName());
+                pstmt.setString(3, newUser.getLastName());
+                pstmt.setString(4, newUser.getEmail());
+                pstmt.setString(5, newUser.getPassword());
+                pstmt.executeUpdate();
+                ctx.status(201).result("Registered successfully");
+            } catch (SQLException e) {
+                ctx.status(500).result("Database error while saving user.");
+            }
         } catch (IllegalArgumentException e) {
             ctx.status(400).result(e.getMessage());
         }
     }
 
-    public static User authenticateUser(String email, String password, ArrayList<User> userList) {
-        for (User currentUser : userList) {
-            boolean isEmailCorrect = currentUser.getEmail().equalsIgnoreCase(email);
-            boolean isPasswordCorrect = currentUser.getPassword().equals(password);
-
-            if (isEmailCorrect && isPasswordCorrect) return currentUser;
+    public static User authenticateUser(String email, String password) {
+        String sql = "SELECT id, firstName, lastName, email, password FROM users WHERE LOWER(email) = LOWER(?) AND password = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User(rs.getString("firstName"), rs.getString("lastName"), rs.getString("email"), rs.getString("password"));
+                    user.setId(rs.getString("id"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    public static boolean isEmailRegistered(String email, ArrayList<User> usersList) {
-        for (User user : usersList) {
-            if (user.getEmail().equalsIgnoreCase(email)) {
-                return true;
+    public static boolean isEmailRegistered(String email) {
+        String sql = "SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }

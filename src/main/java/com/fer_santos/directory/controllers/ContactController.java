@@ -1,37 +1,72 @@
 package com.fer_santos.directory.controllers;
 
 import com.fer_santos.directory.models.Contact;
-import com.fer_santos.directory.models.User;
-import com.fer_santos.directory.utils.StorageManager;
+import com.fer_santos.directory.utils.DatabaseManager;
 import io.javalin.http.Context;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class ContactController {
 
+    private static String getUserIdByEmail(String email) {
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT id FROM users WHERE LOWER(email) = LOWER(?)")) {
+            pstmt.setString(1, email);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getString("id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static void getAllContacts(Context ctx) {
       String email = ctx.attribute("email");
-      ArrayList<User> currentUsers = StorageManager.loadUsers();
-      if (currentUsers == null) {
-        ctx.status(500).result("Error loading database.");
-        return;
-      }
-
-      User owner = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
-      if (owner == null) {
+      String userId = getUserIdByEmail(email);
+      
+      if (userId == null) {
         ctx.status(404).result("User not found.");
         return;
       }
 
-      ctx.json(owner.getContacts());
+      List<Contact> contacts = new ArrayList<>();
+      String sql = "SELECT id, firstName, lastName, email, phoneNumber, alias, isFavorite, isTrashed FROM contacts WHERE user_id = ?";
+      try (Connection conn = DatabaseManager.getConnection();
+           PreparedStatement pstmt = conn.prepareStatement(sql)) {
+           pstmt.setString(1, userId);
+           try (ResultSet rs = pstmt.executeQuery()) {
+               while (rs.next()) {
+                   Contact c = new Contact();
+                   c.setId(rs.getString("id"));
+                   c.setName(rs.getString("firstName"));
+                   c.setLastName(rs.getString("lastName"));
+                   c.setEmail(rs.getString("email"));
+                   c.setPhoneNumber(rs.getString("phoneNumber"));
+                   c.setAlias(rs.getString("alias"));
+                   c.setFavorite(rs.getInt("isFavorite") == 1);
+                   c.setTrashed(rs.getInt("isTrashed") == 1);
+                   contacts.add(c);
+               }
+           }
+           ctx.json(contacts);
+      } catch (SQLException e) {
+           ctx.status(500).result("Error loading contacts from database.");
+      }
     }
 
     public static void createContact(Context ctx) {
       String email = ctx.attribute("email");
-      ArrayList<User> currentUsers = StorageManager.loadUsers();
-      if (currentUsers == null) {
-        ctx.status(500).result("Error loading database.");
+      String userId = getUserIdByEmail(email);
+      if (userId == null) {
+        ctx.status(404).json(Map.of("error", "User not found."));
         return;
       }
 
@@ -44,7 +79,6 @@ public class ContactController {
           return;
         }
 
-        // Gracefully handle optional fields
         if (newContact.getLastName() != null && newContact.getLastName().trim().isEmpty()) {
             newContact.setLastName(null);
         }
@@ -52,15 +86,28 @@ public class ContactController {
             newContact.setEmail(null);
         }
 
-        User owner = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
-        if (owner == null) {
-          ctx.status(404).json(Map.of("error", "User not found."));
-          return;
+        if (newContact.getId() == null) {
+            newContact.setId(UUID.randomUUID().toString());
         }
 
-        owner.getContacts().add(newContact);
-        StorageManager.saveUsers(currentUsers);
-        ctx.status(201).json(newContact);
+        String sql = "INSERT INTO contacts (id, user_id, firstName, lastName, email, phoneNumber, alias, isFavorite, isTrashed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, newContact.getId());
+            pstmt.setString(2, userId);
+            pstmt.setString(3, newContact.getName());
+            pstmt.setString(4, newContact.getLastName());
+            pstmt.setString(5, newContact.getEmail());
+            pstmt.setString(6, newContact.getPhoneNumber());
+            pstmt.setString(7, newContact.getAlias());
+            pstmt.setInt(8, newContact.isFavorite() ? 1 : 0);
+            pstmt.setInt(9, newContact.isTrashed() ? 1 : 0);
+            pstmt.executeUpdate();
+            
+            ctx.status(201).json(newContact);
+        } catch (SQLException e) {
+            ctx.status(500).json(Map.of("error", "Database error while saving contact."));
+        }
 
       } catch (Exception e) {
         ctx.status(400).json(Map.of("error", "Invalid JSON body or format."));
@@ -76,34 +123,13 @@ public class ContactController {
         return;
       }
 
-      ArrayList<User> currentUsers = StorageManager.loadUsers();
-      if (currentUsers == null) {
-        ctx.status(500).result("Error loading database.");
+      String userId = getUserIdByEmail(email);
+      if (userId == null) {
+        ctx.status(404).result("User not found.");
         return;
       }
 
       try {
-        User user = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
-
-        if (user == null) {
-          ctx.status(404).result("User not found.");
-          return;
-        }
-
-        int targetIndex = -1;
-        for (int i = 0; i < user.getContacts().size(); i++) {
-          Contact c = user.getContacts().get(i);
-          if (c.getId() != null && c.getId().equals(id)) {
-            targetIndex = i;
-            break;
-          }
-        }
-
-        if (targetIndex == -1) {
-          ctx.status(404).result("Contact not found.");
-          return;
-        }
-
         Contact updatedContact = ctx.bodyAsClass(Contact.class);
         if (updatedContact.getName() == null || updatedContact.getName().trim().isEmpty() ||
             updatedContact.getPhoneNumber() == null || updatedContact.getPhoneNumber().trim().isEmpty()) {
@@ -111,7 +137,6 @@ public class ContactController {
           return;
         }
 
-        // Gracefully handle optional fields
         if (updatedContact.getLastName() != null && updatedContact.getLastName().trim().isEmpty()) {
             updatedContact.setLastName(null);
         }
@@ -119,12 +144,31 @@ public class ContactController {
             updatedContact.setEmail(null);
         }
 
-        // Ensure ID is maintained
         updatedContact.setId(id);
 
-        user.getContacts().set(targetIndex, updatedContact);
-        StorageManager.saveUsers(currentUsers);
-        ctx.status(200).json(updatedContact);
+        String sql = "UPDATE contacts SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, alias = ?, isFavorite = ?, isTrashed = ? WHERE id = ? AND user_id = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, updatedContact.getName());
+            pstmt.setString(2, updatedContact.getLastName());
+            pstmt.setString(3, updatedContact.getEmail());
+            pstmt.setString(4, updatedContact.getPhoneNumber());
+            pstmt.setString(5, updatedContact.getAlias());
+            pstmt.setInt(6, updatedContact.isFavorite() ? 1 : 0);
+            pstmt.setInt(7, updatedContact.isTrashed() ? 1 : 0);
+            pstmt.setString(8, id);
+            pstmt.setString(9, userId);
+            
+            int rows = pstmt.executeUpdate();
+            if (rows == 0) {
+                ctx.status(404).result("Contact not found.");
+                return;
+            }
+            
+            ctx.status(200).json(updatedContact);
+        } catch (SQLException e) {
+            ctx.status(500).json(Map.of("error", "Database error while updating contact."));
+        }
 
       } catch (Exception e) {
         ctx.status(400).json(Map.of("error", "Invalid JSON body or format."));
@@ -140,32 +184,25 @@ public class ContactController {
         return;
       }
 
-      ArrayList<User> currentUsers = StorageManager.loadUsers();
-      if (currentUsers == null) {
-        ctx.status(500).result("Error loading database.");
+      String userId = getUserIdByEmail(email);
+      if (userId == null) {
+        ctx.status(404).result("User not found.");
         return;
       }
 
-      try {
-        User user = currentUsers.stream().filter(u -> u.getEmail().equalsIgnoreCase(email)).findFirst().orElse(null);
-
-        if (user == null) {
-          ctx.status(404).result("User not found.");
-          return;
-        }
-
-        boolean removed = user.getContacts().removeIf(c -> c.getId() != null && c.getId().equals(id));
-
-        if (!removed) {
-          ctx.status(404).result("Contact not found.");
-          return;
-        }
-
-        StorageManager.saveUsers(currentUsers);
-        ctx.status(200).result("Contact deleted successfully.");
-
-      } catch (Exception e) {
-        ctx.status(500).result("Persistence error.");
+      String sql = "DELETE FROM contacts WHERE id = ? AND user_id = ?";
+      try (Connection conn = DatabaseManager.getConnection();
+           PreparedStatement pstmt = conn.prepareStatement(sql)) {
+          pstmt.setString(1, id);
+          pstmt.setString(2, userId);
+          int rows = pstmt.executeUpdate();
+          if (rows == 0) {
+              ctx.status(404).result("Contact not found.");
+              return;
+          }
+          ctx.status(200).result("Contact deleted successfully.");
+      } catch (SQLException e) {
+          ctx.status(500).result("Persistence error.");
       }
     }
 }

@@ -1,24 +1,39 @@
 package com.fer_santos.directory;
 
 import com.fer_santos.directory.models.User;
-import com.fer_santos.directory.utils.StorageManager;
+import com.fer_santos.directory.utils.DatabaseManager;
 import com.fer_santos.directory.controllers.ContactController;
 import com.fer_santos.directory.controllers.AuthController;
 import io.javalin.Javalin;
 
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class Main {
 
   public static void main(String[] args) {
-    ArrayList<User> loadedUsers = StorageManager.loadUsers();
-    final ArrayList<User> usersList = (loadedUsers != null) ? loadedUsers : new ArrayList<>();
+    DatabaseManager.initialize();
 
-    if (usersList.isEmpty()) {
-      User admin = new User("Admin", "System", "admin@amber.com", "admin123");
-      usersList.add(admin);
-      StorageManager.saveUsers(usersList);
-      System.out.println("Seed user created: admin@amber.com");
+    try (Connection conn = DatabaseManager.getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
+        if (rs.next() && rs.getInt(1) == 0) {
+            User admin = new User("Admin", "System", "admin@amber.com", "admin123");
+            try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users (id, firstName, lastName, email, password) VALUES (?, ?, ?, ?, ?)")) {
+                pstmt.setString(1, admin.getId());
+                pstmt.setString(2, admin.getName());
+                pstmt.setString(3, admin.getLastName());
+                pstmt.setString(4, admin.getEmail());
+                pstmt.setString(5, admin.getPassword());
+                pstmt.executeUpdate();
+            }
+            System.out.println("Seed user created: admin@amber.com");
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
 
     Javalin app = Javalin.create(config -> {
