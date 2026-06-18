@@ -5,6 +5,11 @@ import com.fer_santos.directory.utils.DatabaseManager;
 import com.fer_santos.directory.controllers.ContactController;
 import com.fer_santos.directory.controllers.AuthController;
 import io.javalin.Javalin;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -55,12 +60,13 @@ public class Main {
         return;
       }
       String token = authHeader.substring(7);
-      String email = AuthController.activeSessions.get(token);
-      
-      if (email == null) {
-        ctx.status(401).result("Unauthorized");
-      } else {
-        ctx.attribute("email", email);
+      try {
+          Algorithm algorithm = Algorithm.HMAC256("AmberMinimalSecretKey2026");
+          JWTVerifier verifier = JWT.require(algorithm).build();
+          DecodedJWT decodedJWT = verifier.verify(token);
+          ctx.attribute("userId", decodedJWT.getSubject());
+      } catch (JWTVerificationException exception){
+          ctx.status(401).result("Unauthorized");
       }
     });
 

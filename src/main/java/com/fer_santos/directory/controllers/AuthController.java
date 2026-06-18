@@ -9,11 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 
 public class AuthController {
-    public static Map<String, String> activeSessions = new ConcurrentHashMap<>();
 
     public static class LoginDto {
         public String email;
@@ -32,8 +31,11 @@ public class AuthController {
 
         User user = authenticateUser(dto.email, dto.password);
         if (user != null) {
-            String token = UUID.randomUUID().toString();
-            activeSessions.put(token, user.getEmail());
+            Algorithm algorithm = Algorithm.HMAC256("AmberMinimalSecretKey2026");
+            String token = JWT.create()
+                    .withSubject(user.getId())
+                    .withClaim("email", user.getEmail())
+                    .sign(algorithm);
             ctx.json(Map.of(
                 "token", token,
                 "name", user.getName(),

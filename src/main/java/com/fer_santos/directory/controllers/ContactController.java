@@ -15,25 +15,11 @@ import java.util.UUID;
 
 public class ContactController {
 
-    private static String getUserIdByEmail(String email) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("SELECT id FROM users WHERE LOWER(email) = LOWER(?)")) {
-            pstmt.setString(1, email);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return rs.getString("id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public static void getAllContacts(Context ctx) {
-      String email = ctx.attribute("email");
-      String userId = getUserIdByEmail(email);
+      String userId = ctx.attribute("userId");
       
       if (userId == null) {
-        ctx.status(404).result("User not found.");
+        ctx.status(401).result("Unauthorized");
         return;
       }
 
@@ -63,10 +49,9 @@ public class ContactController {
     }
 
     public static void createContact(Context ctx) {
-      String email = ctx.attribute("email");
-      String userId = getUserIdByEmail(email);
+      String userId = ctx.attribute("userId");
       if (userId == null) {
-        ctx.status(404).json(Map.of("error", "User not found."));
+        ctx.status(401).json(Map.of("error", "Unauthorized"));
         return;
       }
 
@@ -115,17 +100,15 @@ public class ContactController {
     }
 
     public static void updateContact(Context ctx) {
-      String email = ctx.attribute("email");
-      String id = ctx.queryParam("id");
-
-      if (id == null || id.isBlank()) {
-        ctx.status(400).result("Parameter 'id' is mandatory.");
+      String userId = ctx.attribute("userId");
+      if (userId == null) {
+        ctx.status(401).json(Map.of("error", "Unauthorized"));
         return;
       }
-
-      String userId = getUserIdByEmail(email);
-      if (userId == null) {
-        ctx.status(404).result("User not found.");
+      
+      String id = ctx.queryParam("id");
+      if (id == null || id.isBlank()) {
+        ctx.status(400).result("Parameter 'id' is mandatory.");
         return;
       }
 
@@ -176,17 +159,15 @@ public class ContactController {
     }
 
     public static void deleteContact(Context ctx) {
-      String email = ctx.attribute("email");
-      String id = ctx.queryParam("id");
-
-      if (id == null || id.isBlank()) {
-        ctx.status(400).result("Parameter 'id' is mandatory.");
+      String userId = ctx.attribute("userId");
+      if (userId == null) {
+        ctx.status(401).result("Unauthorized");
         return;
       }
-
-      String userId = getUserIdByEmail(email);
-      if (userId == null) {
-        ctx.status(404).result("User not found.");
+      
+      String id = ctx.queryParam("id");
+      if (id == null || id.isBlank()) {
+        ctx.status(400).result("Parameter 'id' is mandatory.");
         return;
       }
 
