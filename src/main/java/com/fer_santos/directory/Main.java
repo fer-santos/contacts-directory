@@ -48,6 +48,14 @@ public class Main {
       });
     }).start(7070);
 
+    app.before(ctx -> {
+      if (ctx.path().equals("/") || ctx.path().equals("/index.html")) {
+        ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        ctx.header("Pragma", "no-cache");
+        ctx.header("Expires", "0");
+      }
+    });
+
     // Authentication Endpoints
     app.post("/api/auth/login", AuthController::login);
     app.post("/api/auth/register", AuthController::register);

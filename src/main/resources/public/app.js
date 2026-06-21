@@ -3,9 +3,17 @@
  */
 
 // Authentication check before anything else
-if (!localStorage.getItem('token')) {
-    window.location.href = 'login.html';
+function checkAuth() {
+    if (!localStorage.getItem('token')) {
+        window.location.replace('login.html');
+    }
 }
+
+checkAuth();
+
+window.addEventListener('pageshow', function(event) {
+    checkAuth();
+});
 
 const API_URL = `/api/contacts`;
 
@@ -383,7 +391,7 @@ function setupEventListeners() {
             localStorage.removeItem('token');
             localStorage.removeItem('userName');
             localStorage.removeItem('userEmail');
-            window.location.href = 'login.html';
+            window.location.replace('login.html');
         });
     }
 
