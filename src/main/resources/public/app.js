@@ -34,6 +34,23 @@ const addContactBtn = document.getElementById('addContactBtn');
 const closeModal = document.getElementById('closeModal');
 const contactForm = document.getElementById('contactForm');
 const modalTitle = document.getElementById('modalTitle');
+const modalError = document.getElementById('modalError');
+
+function showModalError(msg) {
+    if (modalError) {
+        modalError.textContent = msg;
+        modalError.style.display = 'block';
+    } else {
+        alert(msg);
+    }
+}
+
+function hideModalError() {
+    if (modalError) {
+        modalError.style.display = 'none';
+        modalError.textContent = '';
+    }
+}
 
 // Nav items
 const navItems = document.querySelectorAll('.nav-item');
@@ -375,6 +392,7 @@ function setupEventListeners() {
         isEditing = false;
         modalTitle.textContent = 'Add Contact';
         contactForm.reset();
+        hideModalError();
         contactModal.classList.add('show');
     };
 
@@ -421,18 +439,26 @@ async function handleAdd(data) {
         response = checkAuthResponse(response);
 
         if (response.status === 201) {
+            const newContact = await response.json();
             contactModal.classList.remove('show');
             contactForm.reset();
             searchInput.value = ''; // clear search
-            selectedContactIndex = contacts.length; // Will select the new one at the end
-            fetchContacts();
+            await fetchContacts();
+            
+            const newIndex = contacts.findIndex(c => c.id === newContact.id);
+            if (newIndex !== -1) {
+                selectContact(newIndex);
+            }
+        } else if (response.status === 400) {
+            const errorData = await response.json();
+            showModalError(errorData.error || 'Invalid data');
         } else {
             console.error('Failed to add contact:', response.status);
-            alert('Error adding contact. Please check your data.');
+            showModalError('Error adding contact. Please check your data.');
         }
     } catch (error) {
         console.error('Error during handleAdd:', error);
-        alert('Network error. Could not reach the server.');
+        showModalError('Network error. Could not reach the server.');
     }
 }
 
@@ -449,6 +475,7 @@ window.handleEdit = function() {
     contactForm.email.value = contact.email || '';
     contactForm.phone.value = contact.phoneNumber || '';
     
+    hideModalError();
     contactModal.classList.add('show');
 };
 
@@ -470,17 +497,26 @@ async function handleSaveEdit(data) {
         response = checkAuthResponse(response);
 
         if (response.ok) {
+            const updatedContact = await response.json();
             contactModal.classList.remove('show');
             contactForm.reset();
-            fetchContacts();
+            await fetchContacts();
+            
+            const newIndex = contacts.findIndex(c => c.id === updatedContact.id);
+            if (newIndex !== -1) {
+                selectContact(newIndex);
+            }
+        } else if (response.status === 400) {
+            const errorData = await response.json();
+            showModalError(errorData.error || 'Invalid data');
         } else {
             const errorMsg = await response.text();
             console.error('Failed to edit contact:', response.status, errorMsg);
-            alert(`Error editing contact: ${errorMsg}`);
+            showModalError(`Error editing contact: ${errorMsg}`);
         }
     } catch (error) {
         console.error('Error during handleSaveEdit:', error);
-        alert('Network error. Could not reach the server.');
+        showModalError('Network error. Could not reach the server.');
     }
 }
 
