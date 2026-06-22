@@ -239,6 +239,7 @@ function renderContactList(list) {
  */
 function selectContact(index) {
     if (index === -1) return;
+    if (selectedContactIndex === index) return;
     selectedContactIndex = index;
     
     // Quick re-render to update selected class visually
