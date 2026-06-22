@@ -49,7 +49,8 @@ public class Main {
     }).start(7070);
 
     app.before(ctx -> {
-      if (ctx.path().equals("/") || ctx.path().equals("/index.html")) {
+      String path = ctx.path();
+      if (path.equals("/") || path.equals("/index.html") || path.equals("/login.html") || path.equals("/register.html")) {
         ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
         ctx.header("Pragma", "no-cache");
         ctx.header("Expires", "0");

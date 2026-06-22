@@ -1,3 +1,15 @@
+function checkAuthOnAuthPages() {
+    if (localStorage.getItem('token')) {
+        window.location.replace('/');
+    }
+}
+
+checkAuthOnAuthPages();
+
+window.addEventListener('pageshow', function(event) {
+    checkAuthOnAuthPages();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -25,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('userLastName', data.lastName || '');
                     localStorage.setItem('userEmail', data.email);
-                    window.location.href = '/';
+                    window.location.replace('/');
                 } else {
                     const err = await response.text();
                     alert(err || 'Invalid credentials');
