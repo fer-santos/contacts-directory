@@ -4,6 +4,7 @@ import com.fer_santos.directory.models.User;
 import com.fer_santos.directory.utils.DatabaseManager;
 import com.fer_santos.directory.controllers.ContactController;
 import com.fer_santos.directory.controllers.AuthController;
+import com.fer_santos.directory.controllers.UserController;
 import io.javalin.Javalin;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -61,8 +62,8 @@ public class Main {
     app.post("/api/auth/login", AuthController::login);
     app.post("/api/auth/register", AuthController::register);
 
-    // Middleware to protect /api/contacts routes
-    app.before("/api/contacts*", ctx -> {
+    // Middleware to protect API routes
+    io.javalin.http.Handler authMiddleware = ctx -> {
       String authHeader = ctx.header("Authorization");
       if (authHeader == null || !authHeader.startsWith("Bearer ")) {
         ctx.status(401).result("Unauthorized");
@@ -77,12 +78,20 @@ public class Main {
       } catch (JWTVerificationException exception){
           ctx.status(401).result("Unauthorized");
       }
-    });
+    };
+
+    app.before("/api/contacts*", authMiddleware);
+    app.before("/api/user*", authMiddleware);
 
     // Contacts API
     app.get("/api/contacts", ContactController::getAllContacts);
     app.post("/api/contacts", ContactController::createContact);
     app.put("/api/contacts", ContactController::updateContact);
     app.delete("/api/contacts", ContactController::deleteContact);
+
+    // User API
+    app.get("/api/user", UserController::getUserProfile);
+    app.put("/api/user", UserController::updateUserProfile);
+    app.put("/api/user/password", UserController::updateUserPassword);
   }
 }

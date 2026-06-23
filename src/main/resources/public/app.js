@@ -431,13 +431,60 @@ function setupEventListeners() {
     const profileModal = document.getElementById('profileModal');
     const closeProfileModal = document.getElementById('closeProfileModal');
     const profileFirstName = document.getElementById('profileFirstName');
+    const profileLastName = document.getElementById('profileLastName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profileNewPassword = document.getElementById('profileNewPassword');
+    const profileConfirmPassword = document.getElementById('profileConfirmPassword');
     const profileAvatar = document.getElementById('profileAvatar');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const profileModalError = document.getElementById('profileModalError');
+    const passwordStrengthContainer = document.getElementById('passwordStrengthContainer');
+    const passwordStrengthIconContainer = document.getElementById('passwordStrengthIconContainer');
+    const passwordStrengthText = document.getElementById('passwordStrengthText');
+
+    function showProfileError(msg) {
+        if (profileModalError) {
+            profileModalError.textContent = msg;
+            profileModalError.style.display = 'block';
+        }
+    }
+
+    function hideProfileError() {
+        if (profileModalError) {
+            profileModalError.style.display = 'none';
+            profileModalError.textContent = '';
+        }
+    }
 
     if (profileSettingsBtn && profileModal) {
-        profileSettingsBtn.addEventListener('click', (e) => {
+        profileSettingsBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             userProfileBtn.classList.remove('open');
+            hideProfileError();
+            
+            // Clear passwords and hide indicator
+            profileNewPassword.value = '';
+            profileConfirmPassword.value = '';
+            passwordStrengthContainer.style.display = 'none';
+
+            // Fetch current profile data
+            try {
+                let response = await fetch('/api/user', { headers: getAuthHeaders() });
+                response = checkAuthResponse(response);
+                if (response.ok) {
+                    const data = await response.json();
+                    profileFirstName.value = data.firstName || '';
+                    profileLastName.value = data.lastName || '';
+                    profileEmail.value = data.email || '';
+                    
+                    const val = data.firstName ? data.firstName.trim() : '';
+                    profileAvatar.textContent = val ? val.charAt(0).toUpperCase() : '?';
+                }
+            } catch (err) {
+                console.error(err);
+                showProfileError('Failed to load profile data');
+            }
+            
             profileModal.classList.add('show');
             lucide.createIcons();
         });
@@ -457,12 +504,101 @@ function setupEventListeners() {
             profileAvatar.textContent = val ? val.charAt(0).toUpperCase() : '?';
         });
 
-        saveProfileBtn.addEventListener('click', () => {
+        profileNewPassword.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.length === 0) {
+                passwordStrengthContainer.style.display = 'none';
+            } else {
+                passwordStrengthContainer.style.display = 'flex';
+                if (val.length < 8) {
+                    passwordStrengthText.textContent = 'Weak password';
+                    passwordStrengthText.style.color = 'var(--destructive)';
+                    passwordStrengthIconContainer.style.backgroundColor = 'var(--destructive-muted)';
+                    passwordStrengthIconContainer.style.color = 'var(--destructive)';
+                    passwordStrengthIconContainer.innerHTML = '<i data-lucide="x" style="width: 10px; height: 10px;"></i>';
+                } else {
+                    passwordStrengthText.textContent = 'Strong password';
+                    passwordStrengthText.style.color = 'var(--success-text)';
+                    passwordStrengthIconContainer.style.backgroundColor = 'var(--success-bg)';
+                    passwordStrengthIconContainer.style.color = 'var(--success-text)';
+                    passwordStrengthIconContainer.innerHTML = '<i data-lucide="check" style="width: 10px; height: 10px;"></i>';
+                }
+                lucide.createIcons();
+            }
+        });
+
+        saveProfileBtn.addEventListener('click', async () => {
+            hideProfileError();
+            
+            const firstName = profileFirstName.value.trim();
+            const email = profileEmail.value.trim();
+            if (!firstName || !email) {
+                showProfileError('First Name and Email are required.');
+                return;
+            }
+
             const originalText = saveProfileBtn.textContent;
             saveProfileBtn.textContent = 'Saving...';
             saveProfileBtn.style.opacity = '0.8';
+            saveProfileBtn.disabled = true;
             
-            setTimeout(() => {
+            try {
+                // Check password change
+                const newPass = profileNewPassword.value;
+                const confirmPass = profileConfirmPassword.value;
+                
+                if (newPass || confirmPass) {
+                    if (newPass !== confirmPass) {
+                        throw new Error('Passwords do not match');
+                    }
+                    if (newPass.length < 8) {
+                        throw new Error('Password must be at least 8 characters');
+                    }
+                    let passRes = await fetch('/api/user/password', {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ newPassword: newPass })
+                    });
+                    passRes = checkAuthResponse(passRes);
+                    if (!passRes.ok) {
+                        const errData = await passRes.json().catch(() => ({error: 'Failed to update password'}));
+                        throw new Error(errData.error || 'Failed to update password');
+                    }
+                }
+                
+                // Update profile info
+                let profileRes = await fetch('/api/user', {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        firstName: profileFirstName.value.trim(),
+                        lastName: profileLastName.value.trim(),
+                        email: profileEmail.value.trim()
+                    })
+                });
+                profileRes = checkAuthResponse(profileRes);
+                
+                if (!profileRes.ok) {
+                    const errData = await profileRes.json().catch(() => ({error: 'Failed to update profile'}));
+                    throw new Error(errData.error || 'Failed to update profile');
+                }
+                
+                // Success
+                localStorage.setItem('userName', profileFirstName.value.trim());
+                localStorage.setItem('userLastName', profileLastName.value.trim());
+                
+                // Update header UI
+                const firstWordName = profileFirstName.value.trim().split(/\s+/)[0] || '';
+                const firstWordLastName = profileLastName.value.trim().split(/\s+/)[0] || '';
+                let displayName = firstWordName;
+                let avatarText = firstWordName ? firstWordName.charAt(0).toUpperCase() : '?';
+                if (firstWordLastName) {
+                    displayName += ' ' + firstWordLastName;
+                    avatarText += firstWordLastName.charAt(0).toUpperCase();
+                }
+                document.querySelector('.user-name').textContent = displayName || 'User';
+                document.getElementById('userAvatar').textContent = avatarText;
+                
                 saveProfileBtn.textContent = 'Saved!';
                 saveProfileBtn.style.backgroundColor = '#16a34a';
                 saveProfileBtn.style.borderColor = '#16a34a';
@@ -472,9 +608,16 @@ function setupEventListeners() {
                     saveProfileBtn.style.backgroundColor = '';
                     saveProfileBtn.style.borderColor = '';
                     saveProfileBtn.style.opacity = '1';
+                    saveProfileBtn.disabled = false;
                     profileModal.classList.remove('show');
                 }, 1000);
-            }, 800);
+                
+            } catch (error) {
+                showProfileError(error.message);
+                saveProfileBtn.textContent = originalText;
+                saveProfileBtn.style.opacity = '1';
+                saveProfileBtn.disabled = false;
+            }
         });
     }
 }

@@ -142,6 +142,7 @@
                 </button>
             </div>
             <div class="modal-form" style="padding-top: 16px;">
+                <div id="profileModalError" class="modal-error text-danger" style="display: none; padding: 12px; background-color: var(--destructive-muted); border: 1px solid var(--destructive); border-radius: 8px; font-weight: 500; margin-bottom: 16px;"></div>
                 <!-- Identity Section -->
                 <div class="avatar-container">
                     <div class="avatar-profile" id="profileAvatar">FG</div>
@@ -170,11 +171,11 @@
                         <div class="form-group">
                             <label>New Password</label>
                             <input type="password" id="profileNewPassword" placeholder="New Password" value="••••••••">
-                            <div class="password-strength">
-                                <div class="strength-icon">
-                                    <i data-lucide="check" style="width: 10px; height: 10px;"></i>
+                            <div class="password-strength" id="passwordStrengthContainer" style="display: none;">
+                                <div class="strength-icon" id="passwordStrengthIconContainer">
+                                    <i data-lucide="check" id="passwordStrengthIcon" style="width: 10px; height: 10px;"></i>
                                 </div>
-                                <span class="strength-text">Strong password</span>
+                                <span class="strength-text" id="passwordStrengthText">Strong password</span>
                             </div>
                         </div>
                         
