@@ -688,6 +688,7 @@ body {
 }
 
 .modal-form input {
+    width: 100%;
     height: 44px; /* h-11 */
     padding: 0 16px;
     background: var(--background);
@@ -833,4 +834,68 @@ body {
 
 .auth-link:hover {
     text-decoration: underline;
+}
+
+/* Profile Settings Modal */
+.avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.avatar-profile {
+    width: 80px;
+    height: 80px;
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    font-size: 32px;
+    font-weight: 500;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    margin: 24px 0 16px 0;
+}
+
+.security-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.password-strength {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.strength-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(22, 163, 74, 0.2);
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.strength-text {
+    font-size: 13px;
+    color: #16a34a;
+    font-weight: 500;
 }

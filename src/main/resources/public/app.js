@@ -425,6 +425,58 @@ function setupEventListeners() {
             handleAdd(data);
         }
     };
+
+    // Profile Settings Modal logic
+    const profileSettingsBtn = document.getElementById('profileSettingsBtn');
+    const profileModal = document.getElementById('profileModal');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    const profileFirstName = document.getElementById('profileFirstName');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+    if (profileSettingsBtn && profileModal) {
+        profileSettingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userProfileBtn.classList.remove('open');
+            profileModal.classList.add('show');
+            lucide.createIcons();
+        });
+
+        closeProfileModal.addEventListener('click', () => {
+            profileModal.classList.remove('show');
+        });
+
+        profileModal.addEventListener('click', (e) => {
+            if (e.target === profileModal) {
+                profileModal.classList.remove('show');
+            }
+        });
+
+        profileFirstName.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            profileAvatar.textContent = val ? val.charAt(0).toUpperCase() : '?';
+        });
+
+        saveProfileBtn.addEventListener('click', () => {
+            const originalText = saveProfileBtn.textContent;
+            saveProfileBtn.textContent = 'Saving...';
+            saveProfileBtn.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                saveProfileBtn.textContent = 'Saved!';
+                saveProfileBtn.style.backgroundColor = '#16a34a';
+                saveProfileBtn.style.borderColor = '#16a34a';
+                
+                setTimeout(() => {
+                    saveProfileBtn.textContent = originalText;
+                    saveProfileBtn.style.backgroundColor = '';
+                    saveProfileBtn.style.borderColor = '';
+                    saveProfileBtn.style.opacity = '1';
+                    profileModal.classList.remove('show');
+                }, 1000);
+            }, 800);
+        });
+    }
 }
 
 /**

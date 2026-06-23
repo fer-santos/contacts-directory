@@ -33,7 +33,7 @@
                 <!-- Dropdown Menu -->
                 <div class="dropdown-menu" id="userDropdown">
                     <div class="dropdown-group">
-                        <button class="dropdown-item">
+                        <button class="dropdown-item" id="profileSettingsBtn">
                             <i data-lucide="user"></i>
                             <span>Profile Settings</span>
                         </button>
@@ -129,6 +129,66 @@
                     <button type="submit" class="btn-primary btn-save">Save Contact</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Profile Settings</h2>
+                <button class="btn-close" id="closeProfileModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-form" style="padding-top: 16px;">
+                <!-- Identity Section -->
+                <div class="avatar-container">
+                    <div class="avatar-profile" id="profileAvatar">FG</div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="profileFirstName" value="Fernando">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name <span class="optional">(Optional)</span></label>
+                        <input type="text" id="profileLastName" value="Gordillo">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="profileEmail" value="f.gordillo@example.com">
+                </div>
+
+                <!-- Security Section -->
+                <div>
+                    <h3 class="section-title">Security</h3>
+                    <div class="security-section">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="profileNewPassword" placeholder="New Password" value="••••••••">
+                            <div class="password-strength">
+                                <div class="strength-icon">
+                                    <i data-lucide="check" style="width: 10px; height: 10px;"></i>
+                                </div>
+                                <span class="strength-text">Strong password</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" id="profileConfirmPassword" placeholder="Confirm Password" value="••••••••">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-primary btn-save" id="saveProfileBtn">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 
